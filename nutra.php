@@ -2,9 +2,6 @@
 
 $locations = array("http://www.nutraplanet.com/top_100");
 
-/*echo "### read script first ### remove exit;";
-exit; */
-
 $count = 0;
 $productUrls = array();
 
