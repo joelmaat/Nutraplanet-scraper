@@ -9,18 +9,18 @@ foreach($locations as $locationUrl) {
 
     preg_match_all("%/product/(.*?)\.html%is", $page, $matches);
 
-    $productUrls = array_merge($productUrls, $matches[1]);
+    $productUrlFragments = array_merge($productUrlFragments, $matches[1]);
 }
 
-$productUrls = array_unique($productUrls);
+$productUrlFragments = array_unique($productUrlFragments);
 
-foreach($productUrls as $productUrl) {
+foreach($productUrlFragments as $productUrlFragment) {
 
-    $page = @file_get_contents("http://www.nutraplanet.com/manufacturer/".$productUrl."/reviews");
+    $page = @file_get_contents("http://www.nutraplanet.com/manufacturer/".$productUrlFragment."/reviews");
 
     preg_match_all("%<td>&nbsp;<i>(.*?)</i></td>%is", $page, $matches);
 
-    echo $productUrl . "\t";
+    echo $productUrlFragment . "\t";
 
     foreach($matches[1] as $votes) {
         echo $votes . "\t";    
