@@ -8,25 +8,25 @@ $locations = array("http://www.nutraplanet.com/top_100");
 exit; */
 
 $count = 0;
-$cologneUrls = array();
+$productUrls = array();
 
 foreach($locations as $locationUrl) {    
     $page = @file_get_contents($locationUrl);
 
     preg_match_all("%/product/(.*?)\.html%is", $page, $matches);
 
-    $cologneUrls = array_merge($cologneUrls, $matches[1]);
+    $productUrls = array_merge($productUrls, $matches[1]);
 }
 
-$cologneUrls = array_unique($cologneUrls);
+$productUrls = array_unique($productUrls);
 
-foreach($cologneUrls as $cologneUrl) {
+foreach($productUrls as $productUrl) {
 
-    $page = @file_get_contents("http://www.nutraplanet.com/manufacturer/".$cologneUrl."/reviews");
+    $page = @file_get_contents("http://www.nutraplanet.com/manufacturer/".$productUrl."/reviews");
 
     preg_match_all("%<td>&nbsp;<i>(.*?)</i></td>%is", $page, $matches);
 
-    echo $cologneUrl . "\t";
+    echo $productUrl . "\t";
 
     foreach($matches[1] as $votes) {
         echo $votes . "\t";    
