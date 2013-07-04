@@ -1,7 +1,5 @@
 <?php
 
-include("./global.php");
-
 $locations = array("http://www.nutraplanet.com/top_100");
 
 /*echo "### read script first ### remove exit;";
