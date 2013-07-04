@@ -2,7 +2,6 @@
 
 $locations = array("http://www.nutraplanet.com/top_100");
 
-$count = 0;
 $productUrls = array();
 
 foreach($locations as $locationUrl) {    
