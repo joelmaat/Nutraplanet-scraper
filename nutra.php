@@ -2,7 +2,7 @@
 
 $locations = array("http://www.nutraplanet.com/top_100");
 
-$productUrls = array();
+$productUrlFragments = array();
 
 foreach($locations as $locationUrl) {    
     $page = @file_get_contents($locationUrl);
