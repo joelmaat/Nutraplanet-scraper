@@ -1,18 +1,10 @@
 <?php
 
-$locations = array("http://www.nutraplanet.com/top_100");
+$page = @file_get_contents("http://www.nutraplanet.com/top_100");
 
-$productUrlFragments = array();
+preg_match_all("%/product/(.*?)\.html%is", $page, $matches);
 
-foreach($locations as $locationUrl) {    
-    $page = @file_get_contents($locationUrl);
-
-    preg_match_all("%/product/(.*?)\.html%is", $page, $matches);
-
-    $productUrlFragments = array_merge($productUrlFragments, $matches[1]);
-}
-
-$productUrlFragments = array_unique($productUrlFragments);
+$productUrlFragments = array_unique($matches[1]);
 
 foreach($productUrlFragments as $productUrlFragment) {
 
@@ -28,5 +20,3 @@ foreach($productUrlFragments as $productUrlFragment) {
 
     echo "\n";    
 }
-
-?>  					
