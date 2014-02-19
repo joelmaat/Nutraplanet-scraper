@@ -5,7 +5,7 @@ preg_match_all('%/product/(.*?)\.html%is', $page, $matches);
 
 $productUrlFragments = array_unique($matches[1]);
 
-foreach ($productUrlFragments as $productUrlFragment) 
+foreach ($productUrlFragments as $productUrlFragment)
 {
 
     $page = file_get_contents('http://www.nutraplanet.com/manufacturer/'
