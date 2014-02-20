@@ -20,8 +20,8 @@ foreach ($productUrlFragments as $productUrlFragment)
 {
 
     $page = file_get_contents('http://www.nutraplanet.com/manufacturer/'
-                                   .$productUrlFragment
-                                   .'/reviews');
+                                  .$productUrlFragment
+                                  .'/reviews');
 
     preg_match_all('%<td>&nbsp;<i>(.*?)</i></td>%is', $page, $matches);
 
