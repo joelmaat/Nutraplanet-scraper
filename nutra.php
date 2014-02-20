@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * Scrapes NutraPlanet and gets review information for the top 100 products
+ *
+ * @author     Joel Johnson
+ * @copyright  2013 Joel Johnson
+ */
+
 $page = file_get_contents('http://www.nutraplanet.com/top_100');
 preg_match_all('%/product/(.*?)\.html%is', $page, $matches);
 
