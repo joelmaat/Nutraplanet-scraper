@@ -19,7 +19,7 @@ $products = getProducts($productIds, $numRatingsRequired);
 
 calculateBayesianEstimate($products);
 
-usort($products, function ($a, $b) {
+usort($products, function (array $a, array $b) {
     if ($a['bayesian_average_rating'] === $b['bayesian_average_rating'])
     {
         return 0;
@@ -40,11 +40,11 @@ printReviews($products);
 /**
  * Visits each location and extracts any productIds it can find.
  *
- * @param string[] $locations List of urls to visit.
+ * @param array<string> $locations List of urls to visit.
  *
- * @return string[] List of product ids.
+ * @return array<string> List of product ids.
  */
-function getProductIds($locations)
+function getProductIds(array $locations)
 {
     $productIds = array();
 
@@ -62,12 +62,12 @@ function getProductIds($locations)
 /**
  * Visits each product page and extracts product information.
  *
- * @param string[] $productIds         List of product ids to fetch.
- * @param integer  $numRatingsRequired Minimum number of ratings for product to be considered.
+ * @param array<string> $productIds         List of product ids to fetch.
+ * @param integer       $numRatingsRequired Minimum number of ratings for product to be considered.
  *
- * @return array<integer,array> List of products.
+ * @return array<array<string,mixed>> List of products.
  */
-function getProducts($productIds, $numRatingsRequired)
+function getProducts(array $productIds, $numRatingsRequired)
 {
     $products = array();
 
@@ -94,18 +94,18 @@ function getProducts($productIds, $numRatingsRequired)
 /**
  * Creates a product with the given name and rating distribution.
  *
- * @param string   $productName        Name of product to create.
- * @param string[] $ratingDistribution Number of 1-5 star ratings (13 1 star, 7 2 star, etc).
+ * @param string        $productName        Name of product to create.
+ * @param array<string> $ratingDistribution Number of 1-5 star ratings (13 1 star, 7 2 star, etc).
  *
- * @return array<string,string|string[]|double|integer> A product.
+ * @return array<string,string|array<string>|double|integer> A product.
  */
-function createProduct($productName, $ratingDistribution)
+function createProduct($productName, array $ratingDistribution)
 {
     $sumRatings = 0.0;
     $numRatings = 0.0;
     $ratingStar = 1.0;
 
-    // In ascending order, 1-star to 5
+    // In ascending order, 1-star to 5.
     foreach($ratingDistribution as $ratingCount)
     {
         $ratingCount = intval($ratingCount);
@@ -126,11 +126,11 @@ function createProduct($productName, $ratingDistribution)
 /**
  * Adds bayesian estimate (of product rating) to each product.
  *
- * @param array<integer,array> &$products List of products to add bayesian estimate to.
+ * @param array<array<string,mixed>> &$products List of products to add bayesian estimate to.
  *
  * @return void
  */
-function calculateBayesianEstimate(&$products)
+function calculateBayesianEstimate(array &$products)
 {
     // See bottom of page: http://www.imdb.com/chart/top .
     $min = getLowestNumberOfRatings($products);
@@ -152,11 +152,11 @@ function calculateBayesianEstimate(&$products)
 /**
  * Returns the average product rating across all products.
  *
- * @param array<integer,array> $products List of products.
+ * @param array<array<string,mixed>> $products List of products.
  *
  * @return double Average rating across products.
  */
-function getAverageRatingAcrossProducts($products)
+function getAverageRatingAcrossProducts(array $products)
 {
     $total = 0.0;
 
@@ -174,11 +174,11 @@ function getAverageRatingAcrossProducts($products)
 /**
  * Returns the number of ratings for the product with the least number of ratings.
  *
- * @param array<integer,array> $products List of products.
+ * @param array<array<string,mixed>> $products List of products.
  *
  * @return integer Lowest number of ratings.
  */
-function getLowestNumberOfRatings($products)
+function getLowestNumberOfRatings(array $products)
 {
     $lowest = 0;
 
@@ -197,11 +197,11 @@ function getLowestNumberOfRatings($products)
 /**
  * Prints review/rating information for each product.
  *
- * @param array<integer,array> $products List of products.
+ * @param array<array<string,mixed>> $products List of products.
  *
  * @return void
  */
-function printReviews($products)
+function printReviews(array $products)
 {
     echo '<table>';
 
