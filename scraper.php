@@ -1,63 +1,81 @@
 <?php
 
-// echo 'Remove exit from script to run.'; exit;
+/**
+ * Scrapes NutraPlanet and gets review information for the top 100 products.
+ *
+ * @author     Joel Johnson
+ * @copyright  2013 Joel Johnson
+ */
 
-define('MINIMUM_NUMBER_OF_VOTES_TO_SAVE_PRODUCT', 2);
+$minimumNumberOfRatingsToSaveProduct = 2;
 
 $locations = array('http://www.nutraplanet.com/top_100');
-$reviewUrlFragments = array_unique(getReviewUrlFragments($locations));
-$products = getProducts($reviewUrlFragments, MINIMUM_NUMBER_OF_VOTES_TO_SAVE_PRODUCT);
+$productIds = array_unique(getProductIds($locations));
+$products = getProducts($productIds, $minimumNumberOfRatingsToSaveProduct);
 
 calculateBayesianEstimate($products);
 
 usort($products, function ($a, $b) {
-    if ($a['bayesian_estimate'] == $b['bayesian_estimate'])
+    if ($a['bayesian_average_rating'] === $b['bayesian_average_rating'])
     {
         return 0;
     }
-
-    return ($a['bayesian_estimate'] < $b['bayesian_estimate']) ? 1 : -1;
+    else if ($a['bayesian_average_rating'] < $b['bayesian_average_rating'])
+    {
+        return 1;
+    }
+    else
+    {
+        return -1;
+    }
 });
 
 printReviews($products);
 
-function getReviewUrlFragments($locations) {
-    $reviewUrlFragments = array();
+
+/**
+ * Visits each location and extracts any productIds it can find.
+ *
+ * @param array $locations
+ * @return array
+ */
+function getProductIds($locations)
+{
+    $productIds = array();
 
     foreach($locations as $location)
     {
-        $page = @file_get_contents($location);
+        $page = file_get_contents($location);
         preg_match_all('%/product/(.*?)\.html%is', $page, $matches);
-        $reviewUrlFragments = array_merge($reviewUrlFragments, $matches[1]);
+        $productIds = array_merge($productIds, $matches[1]);
     }
 
-    return $reviewUrlFragments;
+    return $productIds;
 }
 
-function getProducts($productReviewUrlFragments, $minimumNumberOfVotesToSaveProduct)
+
+/**
+ * Visits each product page and extracts rating information.
+ *
+ * @param array $productIds
+ * @param int $minimumNumberOfRatingsToSaveProduct
+ * @return array
+ */
+function getProducts($productIds, $minimumNumberOfRatingsToSaveProduct)
 {
     $products = array();
 
-    foreach($productReviewUrlFragments as $productReviewUrlFragment)
+    foreach($productIds as $productId)
     {
-        $reviewUrl = 'http://www.nutraplanet.com/manufacturer/'
-                         .$productReviewUrlFragment
-                         .'/reviews';
+        $productUrlPrefix = 'http://www.nutraplanet.com/manufacturer/' . $productId;
+        $reviewUrl = $productUrlPrefix . '/reviews';
 
-        $page = @file_get_contents($reviewUrl);
+        $page = file_get_contents($reviewUrl);
         preg_match_all('%<td>&nbsp;<i>(.*?)</i></td>%is', $page, $matches);
 
-        $product = array();
-        $product['name'] = 'http://www.nutraplanet.com/product/'.$productReviewUrlFragment.'.html';
+        $product = createProduct($productUrlPrefix . '.html', $matches[1]);
 
-        $votes = getVotes($matches[1]);
-
-        $product['vote_distribution'] = $votes['votes'];
-        $product['review_average'] = $votes['average'];
-        $product['num_votes'] = $votes['num_votes'];
-
-        // Only add if there is a vote for the product
-        if ($product['num_votes'] >= $minimumNumberOfVotesToSaveProduct)
+        if ($product['num_ratings'] >= $minimumNumberOfRatingsToSaveProduct)
         {
             $products[] = $product;
         }
@@ -66,77 +84,108 @@ function getProducts($productReviewUrlFragments, $minimumNumberOfVotesToSaveProd
     return $products;
 }
 
-function getVotes($match)
+
+/**
+ * Creates a product with the given name and rating distribution.
+ *
+ * @param string $productName
+ * @param array $ratingDistribution
+ * @return array
+ */
+function createProduct($productName, $ratingDistribution)
 {
-    $votes = array();
-    $sum_votes = 0;
-    $total_votes = 0;
-    $vote_star = 1;
+    $sumRatings = 0;
+    $numRatings = 0;
+    $ratingStar = 1;
 
     // In ascending order, 1-star to 5
-    foreach($match as $vote_count)
+    foreach($ratingDistribution as $ratingCount)
     {
-        $votes[] = $vote_count;
-        $total_votes += $vote_count;
-        $sum_votes += ($vote_count * $vote_star++);
+        $numRatings += $ratingCount;
+        $sumRatings += ($ratingCount * $ratingStar++);
     }
 
-    $product['votes'] = $votes;
-    $product['average'] = ($total_votes < 1) ? 0 : ($sum_votes / $total_votes);
-    $product['num_votes'] = $total_votes;
+    $product = array();
+    $product['name'] = $productName;
+    $product['rating_distribution'] = $ratingDistribution;
+    $product['average_rating'] = ($numRatings < 1) ? 0 : ($sumRatings / $numRatings);
+    $product['num_ratings'] = $numRatings;
 
     return $product;
 }
 
+
+/**
+ * Adds bayesian estimate (of product rating) to each product.
+ *
+ * @param array $products
+ */
 function calculateBayesianEstimate(&$products)
 {
     // See bottom of page: http://www.imdb.com/chart/top
-    $m = getMinNumberOfVotes($products);
-    $C = getAverageReviewAverage($products);
+    $m = getLowestNumberOfRatings($products);
+    $C = getAverageRatingAcrossProducts($products);
 
-    for ($i = 0, $len = count($products); $i < $len; $i++)
+    for ($i = 0, $length = count($products); $i < $length; $i++)
     {
-        $R = $products[$i]['review_average'];
-        $v = $products[$i]['num_votes'];
-        $products[$i]['bayesian_estimate'] = (($v / ($v+$m)) * $R) + (($m / ($v+$m)) * $C);
+        $R = $products[$i]['average_rating'];
+        $v = $products[$i]['num_ratings'];
+        $products[$i]['bayesian_average_rating'] = (($v / ($v + $m)) * $R) + (($m / ($v + $m)) * $C);
     }
 }
 
-function getAverageReviewAverage($products)
+
+/**
+ * Returns the average product rating across all products.
+ *
+ * @param array $products
+ * @return float
+ */
+function getAverageRatingAcrossProducts($products)
 {
     $total = 0;
 
     foreach($products as $product)
     {
-        $total += $product['review_average'];
+        $total += $product['average_rating'];
     }
 
     return $total / count($products);
 }
 
-function getMinNumberOfVotes($products)
+
+/**
+ * Returns the number of ratings for the product with the least number of ratings.
+ *
+ * @param array $products
+ * @return int
+ */
+function getLowestNumberOfRatings($products)
 {
-    foreach($products as $product) {
-        if (!isset($minVote) || ($product['num_votes'] < $minVote))
+    $lowest = 0;
+
+    foreach($products as $product)
+    {
+        if ($product['num_ratings'] < $lowest)
         {
-            $minVote = $product['num_votes'];
+            $lowest = $product['num_ratings'];
         }
     }
 
-    if (!isset($minVote))
-    {
-        $minVote = 0;
-    }
-
-    return $minVote;
+    return $lowest;
 }
 
+/**
+ * Prints review/rating information for each product.
+ *
+ * @param array $products
+ */
 function printReviews($products)
 {
     echo '<table>';
     foreach($products as $product)
     {
-        $product['vote_distribution'] = implode('</td><td>', $product['vote_distribution']);
+        $product['rating_distribution'] = implode('</td><td>', $product['rating_distribution']);
         $product = implode('</td><td>', $product);
         echo '<tr><td>' . $product . '</td></tr>';
     }
