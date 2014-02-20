@@ -1,10 +1,14 @@
 <?php
-
 /**
  * Scrapes NutraPlanet and gets review information for the top 100 products.
  *
- * @author     Joel Johnson
- * @copyright  2013 Joel Johnson
+ * PHP version 5.3
+ *
+ * @package   NutraPlanetScraper
+ * @author    Joel Johnson <me@joelster.com>
+ * @copyright 2013-2014 Joel Johnson
+ * @license   http://opensource.org/licenses/gpl-license.php  GNU Public License
+ * @version   0.1
  */
 
 $minimumNumberOfRatingsToSaveProduct = 2;
