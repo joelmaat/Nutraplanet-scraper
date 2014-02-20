@@ -16,7 +16,7 @@ foreach ($productUrlFragments as $productUrlFragment)
 
     echo $productUrlFragment . '\t';
 
-    foreach ($matches[1] as $votes) 
+    foreach ($matches[1] as $votes)
     {
         echo $votes . '\t';
     }
