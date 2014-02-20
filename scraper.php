@@ -24,7 +24,7 @@ usort($products, function ($a, $b) {
     {
         return 0;
     }
-    else if ($a['bayesian_average_rating'] < $b['bayesian_average_rating'])
+    elseif ($a['bayesian_average_rating'] < $b['bayesian_average_rating'])
     {
         return 1;
     }
@@ -40,8 +40,9 @@ printReviews($products);
 /**
  * Visits each location and extracts any productIds it can find.
  *
- * @param array $locations
- * @return array
+ * @param array $locations List of urls to visit
+ *
+ * @return mixed[]
  */
 function getProductIds($locations)
 {
@@ -61,9 +62,11 @@ function getProductIds($locations)
 /**
  * Visits each product page and extracts rating information.
  *
- * @param array $productIds
- * @param int $minimumNumberOfRatingsToSaveProduct
- * @return array
+ * @param array $productIds                          List of product ids to fetch
+ * @param int   $minimumNumberOfRatingsToSaveProduct Minimum number of ratings for product to be
+                                                     considered
+
+ * @return mixed[]
  */
 function getProducts($productIds, $minimumNumberOfRatingsToSaveProduct)
 {
@@ -92,9 +95,9 @@ function getProducts($productIds, $minimumNumberOfRatingsToSaveProduct)
 /**
  * Creates a product with the given name and rating distribution.
  *
- * @param string $productName
- * @param array $ratingDistribution
- * @return array
+ * @param string $productName        Name of product to create
+ * @param array  $ratingDistribution Number of 1-5 star ratings (13 1 star, 7 2 star, etc)
+ * @return mixed[]
  */
 function createProduct($productName, $ratingDistribution)
 {
@@ -122,7 +125,7 @@ function createProduct($productName, $ratingDistribution)
 /**
  * Adds bayesian estimate (of product rating) to each product.
  *
- * @param array $products
+ * @param array $products List of products to add bayesian estimate to
  */
 function calculateBayesianEstimate(&$products)
 {
@@ -142,7 +145,7 @@ function calculateBayesianEstimate(&$products)
 /**
  * Returns the average product rating across all products.
  *
- * @param array $products
+ * @param array $products List of products
  * @return float
  */
 function getAverageRatingAcrossProducts($products)
@@ -161,7 +164,7 @@ function getAverageRatingAcrossProducts($products)
 /**
  * Returns the number of ratings for the product with the least number of ratings.
  *
- * @param array $products
+ * @param array $products List of products
  * @return int
  */
 function getLowestNumberOfRatings($products)
@@ -182,7 +185,7 @@ function getLowestNumberOfRatings($products)
 /**
  * Prints review/rating information for each product.
  *
- * @param array $products
+ * @param array $products List of products
  */
 function printReviews($products)
 {
