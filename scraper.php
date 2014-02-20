@@ -65,7 +65,7 @@ function getProductIds(array $locations)
  * @param array<string> $productIds         List of product ids to fetch.
  * @param integer       $numRatingsRequired Minimum number of ratings for product to be considered.
  *
- * @return array<mixed[]> List of products.
+ * @return array<integer,mixed[]> List of products.
  */
 function getProducts(array $productIds, $numRatingsRequired)
 {
@@ -97,7 +97,7 @@ function getProducts(array $productIds, $numRatingsRequired)
  * @param string        $productName        Name of product to create.
  * @param array<string> $ratingDistribution Number of 1-5 star ratings (13 1 star, 7 2 star, etc).
  *
- * @return array<mixed> A product.
+ * @return array<string,string|string[]|double> A product.
  */
 function createProduct($productName, array $ratingDistribution)
 {
@@ -126,7 +126,7 @@ function createProduct($productName, array $ratingDistribution)
 /**
  * Adds bayesian estimate (of product rating) to each product.
  *
- * @param array<mixed[]> &$products List of products to add bayesian estimate to.
+ * @param array<integer,mixed[]> &$products List of products to add bayesian estimate to.
  *
  * @return void
  */
@@ -152,7 +152,7 @@ function calculateBayesianEstimate(array &$products)
 /**
  * Returns the average product rating across all products.
  *
- * @param array<mixed[]> $products List of products.
+ * @param array<integer,mixed[]> $products List of products.
  *
  * @return double Average rating across products.
  */
@@ -174,7 +174,7 @@ function getAverageRatingAcrossProducts(array $products)
 /**
  * Returns the number of ratings for the product with the least number of ratings.
  *
- * @param array<mixed[]> $products List of products.
+ * @param array<integer,mixed[]> $products List of products.
  *
  * @return integer Lowest number of ratings.
  */
@@ -197,7 +197,7 @@ function getLowestNumberOfRatings(array $products)
 /**
  * Prints review/rating information for each product.
  *
- * @param array<mixed[]> $products List of products.
+ * @param array<integer,mixed[]> $products List of products.
  *
  * @return void
  */
