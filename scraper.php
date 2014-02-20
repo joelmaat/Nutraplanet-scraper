@@ -62,10 +62,10 @@ function getProductIds($locations)
 /**
  * Visits each product page and extracts product information.
  *
- * @param string[] $productIds         List of product ids to fetch
+ * @param string[] $productIds         List of product ids to fetch.
  * @param integer  $numRatingsRequired Minimum number of ratings for product to be considered.
  *
- * @return array<string,array> List of products.
+ * @return array<integer,array> List of products.
  */
 function getProducts($productIds, $numRatingsRequired)
 {
@@ -94,16 +94,16 @@ function getProducts($productIds, $numRatingsRequired)
 /**
  * Creates a product with the given name and rating distribution.
  *
- * @param string    $productName        Name of product to create
- * @param string[]  $ratingDistribution Number of 1-5 star ratings (13 1 star, 7 2 star, etc).
+ * @param string   $productName        Name of product to create.
+ * @param string[] $ratingDistribution Number of 1-5 star ratings (13 1 star, 7 2 star, etc).
  *
- * @return array<string,string|array|integer|double> A product.
+ * @return array<string,string|string[]|double|integer> A product.
  */
 function createProduct($productName, $ratingDistribution)
 {
-    $sumRatings = 0;
-    $numRatings = 0;
-    $ratingStar = 1;
+    $sumRatings = 0.0;
+    $numRatings = 0.0;
+    $ratingStar = 1.0;
 
     // In ascending order, 1-star to 5
     foreach($ratingDistribution as $ratingCount)
@@ -116,7 +116,7 @@ function createProduct($productName, $ratingDistribution)
     $product = array();
     $product['name'] = $productName;
     $product['rating_distribution'] = $ratingDistribution;
-    $product['average_rating'] = ($numRatings < 1) ? 0 : ($sumRatings / $numRatings);
+    $product['average_rating'] = ($numRatings < 1) ? 0.0 : ($sumRatings / $numRatings);
     $product['num_ratings'] = $numRatings;
 
     return $product;
@@ -126,7 +126,7 @@ function createProduct($productName, $ratingDistribution)
 /**
  * Adds bayesian estimate (of product rating) to each product.
  *
- * @param array<string,array> &$products List of products to add bayesian estimate to.
+ * @param array<integer,array> &$products List of products to add bayesian estimate to.
  *
  * @return void
  */
@@ -152,7 +152,7 @@ function calculateBayesianEstimate(&$products)
 /**
  * Returns the average product rating across all products.
  *
- * @param array<string,array> $products List of products.
+ * @param array<integer,array> $products List of products.
  *
  * @return double Average rating across products.
  */
@@ -174,7 +174,7 @@ function getAverageRatingAcrossProducts($products)
 /**
  * Returns the number of ratings for the product with the least number of ratings.
  *
- * @param array<string,array> $products List of products.
+ * @param array<integer,array> $products List of products.
  *
  * @return integer Lowest number of ratings.
  */
@@ -197,7 +197,7 @@ function getLowestNumberOfRatings($products)
 /**
  * Prints review/rating information for each product.
  *
- * @param array<string,array> $products List of products.
+ * @param array<integer,array> $products List of products.
  *
  * @return void
  */
