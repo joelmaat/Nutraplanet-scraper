@@ -11,11 +11,11 @@
  * @version   0.1
  */
 
-$minimumNumberOfRatingsToSaveProduct = 2;
+$numRatingsRequired = 2;
 
 $locations = array('http://www.nutraplanet.com/top_100');
 $productIds = array_unique(getProductIds($locations));
-$products = getProducts($productIds, $minimumNumberOfRatingsToSaveProduct);
+$products = getProducts($productIds, $numRatingsRequired);
 
 calculateBayesianEstimate($products);
 
@@ -40,9 +40,9 @@ printReviews($products);
 /**
  * Visits each location and extracts any productIds it can find.
  *
- * @param array $locations List of urls to visit
+ * @param string[] $locations List of urls to visit.
  *
- * @return mixed[]
+ * @return string[] List of product ids.
  */
 function getProductIds($locations)
 {
@@ -60,15 +60,14 @@ function getProductIds($locations)
 
 
 /**
- * Visits each product page and extracts rating information.
+ * Visits each product page and extracts product information.
  *
- * @param array $productIds                          List of product ids to fetch
- * @param int   $minimumNumberOfRatingsToSaveProduct Minimum number of ratings for product to be
-                                                     considered
-
- * @return mixed[]
+ * @param string[] $productIds         List of product ids to fetch
+ * @param integer  $numRatingsRequired Minimum number of ratings for product to be considered.
+ *
+ * @return array<string,array> List of products.
  */
-function getProducts($productIds, $minimumNumberOfRatingsToSaveProduct)
+function getProducts($productIds, $numRatingsRequired)
 {
     $products = array();
 
@@ -82,7 +81,7 @@ function getProducts($productIds, $minimumNumberOfRatingsToSaveProduct)
 
         $product = createProduct($productUrlPrefix . '.html', $matches[1]);
 
-        if ($product['num_ratings'] >= $minimumNumberOfRatingsToSaveProduct)
+        if ($product['num_ratings'] >= $numRatingsRequired)
         {
             $products[] = $product;
         }
@@ -95,9 +94,10 @@ function getProducts($productIds, $minimumNumberOfRatingsToSaveProduct)
 /**
  * Creates a product with the given name and rating distribution.
  *
- * @param string $productName        Name of product to create
- * @param array  $ratingDistribution Number of 1-5 star ratings (13 1 star, 7 2 star, etc)
- * @return mixed[]
+ * @param string    $productName        Name of product to create
+ * @param string[]  $ratingDistribution Number of 1-5 star ratings (13 1 star, 7 2 star, etc).
+ *
+ * @return array<string,string|array|integer|double> A product.
  */
 function createProduct($productName, $ratingDistribution)
 {
@@ -108,6 +108,7 @@ function createProduct($productName, $ratingDistribution)
     // In ascending order, 1-star to 5
     foreach($ratingDistribution as $ratingCount)
     {
+        $ratingCount = intval($ratingCount);
         $numRatings += $ratingCount;
         $sumRatings += ($ratingCount * $ratingStar++);
     }
@@ -125,19 +126,25 @@ function createProduct($productName, $ratingDistribution)
 /**
  * Adds bayesian estimate (of product rating) to each product.
  *
- * @param array $products List of products to add bayesian estimate to
+ * @param array<string,array> &$products List of products to add bayesian estimate to.
+ *
+ * @return void
  */
 function calculateBayesianEstimate(&$products)
 {
-    // See bottom of page: http://www.imdb.com/chart/top
-    $m = getLowestNumberOfRatings($products);
-    $C = getAverageRatingAcrossProducts($products);
+    // See bottom of page: http://www.imdb.com/chart/top .
+    $min = getLowestNumberOfRatings($products);
+    $averageRatingAcrossProducts = getAverageRatingAcrossProducts($products);
 
     for ($i = 0, $length = count($products); $i < $length; $i++)
     {
-        $R = $products[$i]['average_rating'];
-        $v = $products[$i]['num_ratings'];
-        $products[$i]['bayesian_average_rating'] = (($v / ($v + $m)) * $R) + (($m / ($v + $m)) * $C);
+        $averageRating = $products[$i]['average_rating'];
+        $numRatings = $products[$i]['num_ratings'];
+
+        $adjustedAverageRating = ($numRatings / ($numRatings + $min)) * $averageRating;
+        $offset = ($min / ($numRatings + $min)) * $averageRatingAcrossProducts;
+
+        $products[$i]['bayesian_average_rating'] = $adjustedAverageRating + $offset;
     }
 }
 
@@ -145,27 +152,31 @@ function calculateBayesianEstimate(&$products)
 /**
  * Returns the average product rating across all products.
  *
- * @param array $products List of products
- * @return float
+ * @param array<string,array> $products List of products.
+ *
+ * @return double Average rating across products.
  */
 function getAverageRatingAcrossProducts($products)
 {
-    $total = 0;
+    $total = 0.0;
 
     foreach($products as $product)
     {
         $total += $product['average_rating'];
     }
 
-    return $total / count($products);
+    $average =  $total / count($products);
+
+    return $average;
 }
 
 
 /**
  * Returns the number of ratings for the product with the least number of ratings.
  *
- * @param array $products List of products
- * @return int
+ * @param array<string,array> $products List of products.
+ *
+ * @return integer Lowest number of ratings.
  */
 function getLowestNumberOfRatings($products)
 {
@@ -182,19 +193,24 @@ function getLowestNumberOfRatings($products)
     return $lowest;
 }
 
+
 /**
  * Prints review/rating information for each product.
  *
- * @param array $products List of products
+ * @param array<string,array> $products List of products.
+ *
+ * @return void
  */
 function printReviews($products)
 {
     echo '<table>';
+
     foreach($products as $product)
     {
         $product['rating_distribution'] = implode('</td><td>', $product['rating_distribution']);
         $product = implode('</td><td>', $product);
         echo '<tr><td>' . $product . '</td></tr>';
     }
+
     echo '<table>';
 }
